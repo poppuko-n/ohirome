@@ -21,8 +21,9 @@ end
 order = Order.find_or_create_by!(number: '1024') do |o|
   o.customer = customer
   o.product = product
-  o.quantity = 2
 end
+# 手順の中で変える値は、流すたびに手順開始時の状態へ戻す
+order.update!(quantity: 2)
 
 puts <<~TEXT
   ■ ログイン情報

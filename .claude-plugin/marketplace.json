@@ -8,8 +8,8 @@
   "plugins": [
     {
       "name": "ohirome",
-      "description": "実装完了後に、動作確認用の seed と画面操作の手順書を生成する（Rails 向け）",
-      "version": "0.1.0",
+      "description": "実装完了後に、動作確認用の seed と、実際の画面のスクリーンショットと判定つきの手順書を生成する（Rails 向け）",
+      "version": "0.2.0",
       "author": {
         "name": "poppuko-n"
       },
@@ -18,7 +18,9 @@
       "tags": [
         "rails",
         "verification",
-        "seed"
+        "seed",
+        "screenshot",
+        "playwright"
       ]
     }
   ]

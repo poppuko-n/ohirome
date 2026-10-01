@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest",
+        "--headless",
+        "--isolated",
+        "--viewport-size",
+        "1280,800",
+        "--output-dir",
+        "/tmp/ohirome-playwright"
+      ]
+    }
+  }
+}

@@ -1,18 +1,25 @@
 # ohirome
 
-Rails 案件で機能を実装し終えたあと、**人が手で動作確認を始めるための準備物**を生成する Claude Code スキルです。
+Rails 案件で機能を実装し終えたあと、**動作確認を代わりに行い、その結果を手順書にまとめる** Claude Code スキルです。
 
-`/ohirome` を実行すると、対象案件に次の 2 ファイルができます。
+`/ohirome` を実行すると、スキルが seed を開発 DB に入れ、開発サーバーをブラウザで操作して各ステップの画面を撮ります。対象案件には次のファイルができます。
 
 ```
 docs/verification/<YYYYMMDD>_<機能名>/
-├─ seed.rb    # 動作確認用データ（本番を想定した固定値・何度流しても同じ状態）
-└─ steps.md   # 1 ステップ 1 操作の手順書（画面遷移ごとに URL パスつき）
+├─ seed.rb          # 動作確認用データ（本番を想定した固定値・何度流しても同じ状態）
+├─ steps.md         # 1 ステップ 1 操作の手順書。各ステップに画面の画像と判定（✅ / ❌）つき
+└─ screenshots/     # 各ステップの画面
 ```
 
-seed は生成するだけで、実行はしません。
+正常系もエラー系も、steps.md を読むだけで動作確認を終えられます。実際に触ってみたくなったら、seed を流して steps.md のとおりに操作してください。
 
 絵で見る概要: [ohirome のしくみ](https://claude.ai/artifact/4j7Di3BjmNjyeUCWeGUuSm?sk=GlGAeEmnZ3BmZBIP55i_OA)
+
+## 必要なもの
+
+- Claude Code
+- Node.js（`npx` が使えること）。画面の操作に同梱の [Playwright MCP](https://github.com/microsoft/playwright-mcp) を使います
+- 対象の Rails 案件の開発環境（`bin/rails runner` と `bin/dev` または `bin/rails server` が動くこと）
 
 ## 導入
 
@@ -32,7 +39,13 @@ Claude Code で次を実行します。
 /ohirome develop          # 比較対象ブランチを指定
 ```
 
-生成されたら、seed を投入して手順書どおりに操作します。
+実行中にスキルが行うこと:
+
+- seed.rb を開発 DB に投入する（冪等なので何度流しても同じ状態になる）
+- 開発サーバーが動いていなければ起動し、撮影が終わったら止める（もともと動いていたサーバーには触らない）
+- 画面の見えないブラウザで手順を 1 ステップずつ実行し、撮影と判定をする
+
+実際に触りたいときは、seed を流してから steps.md のとおりに操作します。
 
 ```bash
 bin/rails runner docs/verification/<YYYYMMDD>_<機能名>/seed.rb
@@ -43,14 +56,14 @@ bin/rails runner docs/verification/<YYYYMMDD>_<機能名>/seed.rb
 - [seed.rb の雛形](skills/ohirome/references/seed-template.rb)
 - [steps.md の雛形](skills/ohirome/references/steps-template.md)
 
-steps.md の 1 ステップはこの形です。画面遷移したステップには `📍` でパスを、結果が目に見えるステップにだけ「確認」を書きます。
+steps.md の 1 ステップはこの形です。画面遷移したステップには `📍` でパスを、結果が目に見えるステップにだけ「確認」と「判定」を書きます。画像はすべてのステップに付きます。
 
 ```markdown
-### 6. 注文の編集画面を開く
-- 📍 `/admin/orders/:id/edit`（seed 出力の「注文 #1024」）
-- 操作: #1024 の行の「編集」をクリック
-- 確認: 数量欄に「2」が入っている
+### 8. 変更を保存する
+- 📍 `/admin/orders/:id`
+- 操作: 「更新する」ボタンをクリック
+- 確認: 「注文を更新しました」と表示され、数量が 3 になっている
+- 判定: ✅ 期待どおり
 
-### 7. 数量を変更する
-- 操作: 数量欄を「3」に書き換える
+![8. 変更を保存する](screenshots/08.png)
 ```
