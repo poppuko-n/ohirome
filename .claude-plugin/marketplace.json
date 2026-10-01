@@ -1,0 +1,25 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ohirome",
+  "description": "Rails 案件の動作確認準備を自動化する ohirome スキルの配布用マーケットプレイス",
+  "owner": {
+    "name": "poppuko-n"
+  },
+  "plugins": [
+    {
+      "name": "ohirome",
+      "description": "実装完了後に、動作確認用の seed と画面操作の手順書を生成する（Rails 向け）",
+      "version": "0.1.0",
+      "author": {
+        "name": "poppuko-n"
+      },
+      "source": "./",
+      "category": "development",
+      "tags": [
+        "rails",
+        "verification",
+        "seed"
+      ]
+    }
+  ]
+}
