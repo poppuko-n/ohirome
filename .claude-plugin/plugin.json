@@ -1,11 +1,17 @@
 {
   "name": "ohirome",
-  "description": "実装完了後に、動作確認用の seed と画面操作の手順書を生成する（Rails 向け）",
+  "description": "実装完了後に、動作確認用の seed と、実際の画面のスクリーンショットと判定つきの手順書を生成する（Rails 向け）",
   "author": {
     "name": "poppuko-n",
     "url": "https://github.com/poppuko-n"
   },
   "homepage": "https://github.com/poppuko-n/ohirome",
   "repository": "https://github.com/poppuko-n/ohirome",
-  "keywords": ["rails", "verification", "seed"]
+  "keywords": [
+    "rails",
+    "verification",
+    "seed",
+    "screenshot",
+    "playwright"
+  ]
 }
