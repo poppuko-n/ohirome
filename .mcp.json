@@ -10,7 +10,9 @@
         "--viewport-size",
         "1280,800",
         "--output-dir",
-        "/tmp/ohirome-playwright"
+        "/tmp/ohirome-playwright",
+        "--caps",
+        "devtools"
       ]
     }
   }

@@ -13,6 +13,8 @@ docs/verification/<YYYYMMDD>_<機能名>/
 
 正常系もエラー系も、steps.md を読むだけで動作確認を終えられます。実際に触ってみたくなったら、seed を流して steps.md のとおりに操作してください。
 
+確認して問題がなければ、`/ohirome:video` で同じ手順を録画し、お客さんに渡せるデモ動画を作れます。
+
 絵で見る概要: [ohirome のしくみ](https://claude.ai/artifact/4j7Di3BjmNjyeUCWeGUuSm?sk=GlGAeEmnZ3BmZBIP55i_OA)
 
 ## 必要なもの
@@ -20,6 +22,7 @@ docs/verification/<YYYYMMDD>_<機能名>/
 - Claude Code
 - Node.js（`npx` が使えること）。画面の操作に同梱の [Playwright MCP](https://github.com/microsoft/playwright-mcp) を使います
 - 対象の Rails 案件の開発環境（`bin/rails runner` と `bin/dev` または `bin/rails server` が動くこと）
+- 動画を mp4 にしたい場合は ffmpeg（`brew install ffmpeg`）。無ければ webm で出力します
 
 ## 導入
 
@@ -50,6 +53,19 @@ Claude Code で次を実行します。
 ```bash
 bin/rails runner docs/verification/<YYYYMMDD>_<機能名>/seed.rb
 ```
+
+### お客さん向けの動画を作る
+
+steps.md を確認して問題がなければ、そのディレクトリを渡して実行します。
+
+```
+/ohirome:video docs/verification/<YYYYMMDD>_<機能名>
+```
+
+- steps.md の手順をそのまま台本にして録画します（ログインやエラー系も含めた全ステップ）
+- 冒頭に機能名、各ステップの前に「番号. 見出し」のカードが入り、マウスポインタと操作箇所が映ります
+- 動画は `tmp/ohirome/<YYYYMMDD>_<機能名>/demo.mp4`（ffmpeg が無ければ `demo.webm`）にできます。`tmp/` に置くのでコミットされません
+- steps.md に ❌ や未実行のステップがあるときは作りません。`/ohirome` で確認をやり直してください
 
 ## 生成物の例
 
