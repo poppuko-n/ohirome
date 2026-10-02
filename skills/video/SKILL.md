@@ -1,6 +1,6 @@
 ---
 name: video
-description: ohirome で作った確認済みの手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。手順書に ❌ や ⏭ があるときは作らない。
+description: ohirome で作り、人が確認した手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。
 argument-hint: "<docs/verification/<YYYYMMDD>_<機能名>>"
 allowed-tools: Read, Glob, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
 ---
@@ -23,16 +23,13 @@ tmp/ohirome/<dir名>/
 
 対象ディレクトリは `$ARGUMENTS`（例: `docs/verification/20261002_order_quantity_edit`）。未指定なら `docs/verification/` の中を `ls` で見せて、どれにするか聞く。
 
-`<dir>/steps.md` と `<dir>/seed.rb` を読む。次のどれかに当たれば**動画を作らずに止め**、理由を伝える。
+`<dir>/steps.md` と `<dir>/seed.rb` を読む。どちらかが無ければ動画を作らずに止め、`/ohirome` を先に実行するよう伝える。
 
-- steps.md か seed.rb が無い
-- 「結果」に ❌ または ⏭ がある、または判定が入っていない（`/ohirome` で動作確認をやり直すよう伝える）
-
-失敗した画面が映った動画をお客さんに渡さないための確認なので、省かない。
+steps.md の内容が期待どおりかは、実行する人がすでに確認している前提で進める。
 
 ### 2. seed を投入し、サーバーを用意する
 
-1. `bin/rails runner <dir>/seed.rb` を実行する。前回の操作で変わったデータが、手順を始める前の状態に戻る
+1. `bin/rails runner <dir>/seed.rb` を実行する。前回の操作で変わったデータが、手順を始める前の状態に戻る。出力されたログイン情報を控える
 2. ポートを決める。`Procfile.dev` の web 行に `-p <番号>` や `PORT` があればそれ、無ければ 3000
 3. `curl -s -o /dev/null -w '%{http_code}' http://localhost:<port>/` で応答を確かめる
    - **応答あり**: そのサーバーを使う。録画後も止めない
@@ -43,7 +40,7 @@ tmp/ohirome/<dir名>/
 
 同梱の Playwright MCP（`mcp__plugin_ohirome_playwright__*`）を使う。
 
-1. 手順にログインが無く、「準備」に `ログイン:` の行があるときは、そのログイン画面を開いてログインする。`browser_start_video` より前の操作は動画に映らないので、ログインは動画に入らない。ログインできなければ録画せずに止め、理由を伝える
+1. 手順にログインが無く、seed の出力にログイン情報があるときは、そのログイン画面を開いてログインする。`browser_start_video` より前の操作は動画に映らないので、ログインは動画に入らない。ログインできなければ録画せずに止め、理由を伝える
 2. `browser_navigate` で手順 1 の 📍 のページを開く（録画はページが開いていないと始められない）。開いたページのパスが 📍 と違う（ID は `:id` に読み替えて比べる。ログイン画面へリダイレクトされたなど）ときは、録画せずに止め、実際に開いたパスを伝える
 3. `browser_start_video`: `filename: "tmp/ohirome/<dir名>/demo.webm"`、`size: { width: 1280, height: 800 }`
 4. `browser_video_show_actions`: `cursor: "pointer"`、`duration: 800`（マウスポインタの動きと、操作した場所の強調が映る）
@@ -55,7 +52,6 @@ tmp/ohirome/<dir名>/
    1. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
    2. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
    3. `browser_wait_for` で `time: 1` 待ち、結果を見せる
-   4. 「確認」があるステップは、画面が steps.md のとおりかを `browser_snapshot` で軽く確かめる。違っていても止めずに最後まで録り、違ったステップを控える
 3. **エンディング**: `browser_video_chapter` で `title: "以上です"`、`duration: 2000`
 
 ### 5. 録画を止める
@@ -74,5 +70,5 @@ tmp/ohirome/<dir名>/
 - 手順 2 で**自分で起動したサーバーだけ**止める（起動に使ったバックグラウンドのタスクを止める）。もともと動いていたサーバーには触らない
 - 次だけを短く伝える
   - 動画のパス（mp4 があれば mp4、無ければ webm）
-  - 録画中に steps.md と違う画面になったステップがあれば、その番号と違い。あれば「お客さんに渡す前に動画を見て確かめてください」と添える
+  - 要素が見つからないなどで操作できなかったステップがあれば、その番号。あれば「お客さんに渡す前に動画を見て確かめてください」と添える
   - 動画はコミットされないこと（`tmp/` に置いている）
