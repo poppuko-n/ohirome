@@ -2,12 +2,12 @@
 name: video
 description: ohirome で作り、人が確認した手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。
 argument-hint: "<docs/verification/<YYYYMMDD>_<機能名>>"
-allowed-tools: Read, Glob, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(git rev-parse:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
+allowed-tools: Read, Glob, Edit, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(git rev-parse:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
 ---
 
 # ohirome:video: 確認済みの手順書からデモ動画を作る
 
-人が `/ohirome` の steps.md を見て問題ないと判断したあとに使う。steps.md の手順をそのまま録画して、お客さんに渡せる動画にする。確認した内容と動画の内容がずれないよう、**steps.md を台本として使い、書き換えない**。
+人が `/ohirome` の steps.md を見て問題ないと判断したあとに使う。steps.md の手順をそのまま録画して、お客さんに渡せる動画にする。確認した内容と動画の内容がずれないよう、**steps.md を台本として使い、書き換えない**。録画が終わったあとに、各ステップへ動画のどこにあたるかの時刻（`🎬` 行）だけを足す。
 
 ```
 tmp/ohirome/<dir名>/
@@ -41,14 +41,20 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 2. `browser_navigate` で手順 1 の 📍 のページを開く。📍 のリンク先が今のベース URL で始まっていればそれを、違えばベース URL + 📍 のパスを開く（録画はページが開いていないと始められない）。別の人の環境で作られた steps.md で ID が合わないときは、seed の出力の URL のパスを使う。開いたページのパスが開こうとしたパスと違う（ログイン画面へリダイレクトされたなど）ときは、録画せずに止め、実際に開いたパスを伝える
 3. `browser_start_video`: `filename: "tmp/ohirome/<dir名>/demo.webm"`、`size: { width: 1280, height: 800 }`
 4. `browser_video_show_actions`: `cursor: "pointer"`、`duration: 800`（マウスポインタの動きと、操作した場所の強調が映る）
+5. `browser_evaluate` で `() => Date.now()` を実行し、返ってきた値を**録画の開始時刻**として控える
 
 ### 4. 収録する
 
-1. **オープニング**: `browser_video_chapter` で `title` に steps.md の見出しの機能名、`description` に「確認する機能」の文、`duration: 3000`
-2. **各ステップ**（steps.md の手順 1 から順に全部）。「## 正常系」「## 異常系」の見出しに入るところでは、最初に `browser_video_chapter` で `title: "正常系"`（または `"異常系"`）、`duration: 1500` を出す:
-   1. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
-   2. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
-   3. `browser_wait_for` で `time: 1` 待ち、結果を見せる
+1. **オープニング**: `browser_video_chapter` で `title` に steps.md の `#` 見出しの名前（「動作確認手順」は除く）、`description` に目次の表の機能名を「、」でつないだもの、`duration: 3000`
+2. **各ステップ**（steps.md の手順 1 から順に全部）。見出しに入るところでは、最初に次のチャプターを出す:
+   - `## <記号>. <機能名>` の見出し: `browser_video_chapter` で `title: "<記号>. <機能名>"`、`description` にその下の `>` の文、`duration: 2500`
+   - 「### 正常系」「### 異常系」の見出し: `browser_video_chapter` で `title: "正常系"`（または `"異常系"`）、`duration: 1500`
+
+   そのうえで各ステップを次のとおり収録する:
+   1. `browser_evaluate` で `() => Date.now()` を実行し、`(返ってきた値 - 録画の開始時刻) / 1000` の小数点以下を切り捨てた秒数を、そのステップの**動画内の位置**として控える
+   2. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
+   3. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
+   4. `browser_wait_for` で `time: 1` 待ち、結果を見せる
 3. **エンディング**: `browser_video_chapter` で `title: "以上です"`、`duration: 2000`
 
 ### 5. 録画を止める
@@ -62,10 +68,24 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 - **ある**: `ffmpeg -y -loglevel error -i tmp/ohirome/<dir名>/demo.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart tmp/ohirome/<dir名>/demo.mp4`
 - **無い**: webm のまま残す。報告で「mp4 が必要なら `brew install ffmpeg` のあと `/ohirome:video` をもう一度」と伝える
 
-### 7. 後片付けして報告する
+### 7. steps.md に動画の時刻を書く
+
+手順 4 で控えた位置を使い、steps.md の各ステップの `**結果:**` 行の次に 1 行足す。
+
+```markdown
+- 🎬 0:42
+```
+
+- `分:秒`（秒は 2 桁）で書く。リンクにはしない
+- すでに `🎬` 行があれば（撮り直したとき）、その行を書き換える。新しい行は足さない
+- `🎬` 行以外は**一文字も変えない**。見出し・`📍`・操作・結果・画像はそのまま
+- 操作できなかったステップにも、控えた時刻を書く
+
+### 8. 後片付けして報告する
 
 - 手順 2 で**自分で起動したサーバーだけ**止める（起動に使ったバックグラウンドのタスクを止める）。もともと動いていたサーバーには触らない
 - 次だけを短く伝える
   - 動画のパス（mp4 があれば mp4、無ければ webm）
   - 要素が見つからないなどで操作できなかったステップがあれば、その番号。あれば「お客さんに渡す前に動画を見て確かめてください」と添える
   - 動画はコミットされないこと（`tmp/` に置いている）
+  - steps.md の各ステップに `🎬` で動画の時刻を書いたこと。撮り直すと時刻が変わり、steps.md に差分が出ること
