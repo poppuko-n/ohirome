@@ -20,17 +20,21 @@ docs/verification/<YYYYMMDD>_<機能名>/
 ## 必要なもの
 
 - Claude Code
-- Node.js と pnpm（`pnpm dlx` が使えること）。画面の操作に同梱の [Playwright MCP](https://github.com/microsoft/playwright-mcp)（バージョン固定: 0.0.82）を使います
-- 対象の Rails 案件の開発環境（`bin/rails runner` と `bin/dev` または `bin/rails server` が動くこと）
-- 動画を mp4 にしたい場合は ffmpeg（`brew install ffmpeg`）。無ければ webm で出力します
+- Node.js と pnpm
+- 対象の Rails 案件の開発環境（`bin/rails runner` と `bin/dev` が動くこと）
 
 ## 導入
-
-Claude Code で次を実行します。
 
 ```
 /plugin marketplace add poppuko-n/ohirome
 /plugin install ohirome@ohirome
+```
+
+動画（`/ohirome:video`）も使う場合は、録画用の ffmpeg を入れます。
+
+```bash
+pnpm dlx playwright install ffmpeg   # 録画に必須
+brew install ffmpeg                  # mp4 にしたい場合だけ
 ```
 
 ## 使い方
