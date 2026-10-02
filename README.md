@@ -7,7 +7,7 @@ Rails 案件で機能を実装し終えたあと、**動作確認を代わりに
 ```
 docs/verification/<YYYYMMDD>_<機能名>/
 ├─ seed.rb          # 動作確認用データ（本番を想定した固定値・何度流しても同じ状態）
-├─ steps.md         # 1 ステップ 1 操作の手順書。各ステップに URL・操作・結果と画面の画像
+├─ steps.md         # 1 ステップ 1 操作（--short では 1 ステップ 1 画面）の手順書。各ステップに URL・操作・結果と画面の画像
 └─ screenshots/     # 各ステップの画面
 ```
 
@@ -44,7 +44,10 @@ brew install ffmpeg                  # mp4 にしたい場合だけ
 ```
 /ohirome                  # release-candidate（無ければ main）との差分から生成
 /ohirome develop          # 比較対象ブランチを指定
+/ohirome --short          # 同じ画面での入力とボタンのクリックを 1 ステップにまとめた短い手順書にする
 ```
+
+`--short` では、クリックするステップに押す直前の画面（入力済みのフォームと、押す要素の赤枠）が付きます。
 
 実行中にスキルが行うこと:
 
@@ -78,6 +81,7 @@ steps.md を確認して問題がなければ、そのディレクトリを渡�
 
 - [seed.rb の雛形](skills/ohirome/references/seed-template.rb)
 - [steps.md の雛形](skills/ohirome/references/steps-template.md)
+- [steps.md の雛形（--short）](skills/ohirome/references/steps-template-short.md)
 
 steps.md は機能ごとに見出しが分かれ、冒頭の目次でどの機能がどのステップにあたるかが分かります。機能は「確認する人が、ひとつの目的のために続けて触る操作のまとまり」で分けるので、タスクの数とは一致しません（例: 「注文の登録」「注文の編集」「出荷ボタンの変更」→「注文を登録・編集できる」「出荷ボタンで出荷済みにできる」の 2 つ）。各機能の中は「正常系」と「異常系」に分かれます。
 

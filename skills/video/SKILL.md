@@ -53,7 +53,7 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
    そのうえで各ステップを次のとおり収録する:
    1. `browser_evaluate` で `() => Date.now()` を実行し、`(返ってきた値 - 録画の開始時刻) / 1000` の小数点以下を切り捨てた秒数を、そのステップの**動画内の位置**として控える
    2. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
-   3. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
+   3. steps.md の「操作」を行う（サブ箇条書きがあれば上から順にすべて）。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
    4. `browser_wait_for` で `time: 1` 待ち、結果を見せる
 3. **エンディング**: `browser_video_chapter` で `title: "以上です"`、`duration: 2000`
 
