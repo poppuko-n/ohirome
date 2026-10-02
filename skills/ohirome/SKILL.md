@@ -1,7 +1,7 @@
 ---
 name: ohirome
-description: Rails 案件で機能の実装が終わったあと、動作確認用の seed.rb と、各ステップに URL・操作・結果と実際の画面のスクリーンショットを並べた手順書 steps.md を生成する。スキルが seed を開発 DB に投入し、開発サーバーをブラウザで操作して撮影する。`/ohirome [比較対象ブランチ]` での明示起動のほか、「動作確認の準備をして」「動作確認用のデータと手順を作って」「動作確認して手順書にまとめて」と依頼されたときに使う。
-argument-hint: "[比較対象ブランチ（省略時は release-candidate、無ければ main）]"
+description: Rails 案件で機能の実装が終わったあと、動作確認用の seed.rb と、各ステップに URL・操作・結果と実際の画面のスクリーンショットを並べた手順書 steps.md を生成する。スキルが seed を開発 DB に投入し、開発サーバーをブラウザで操作して撮影する。`/ohirome [--short] [比較対象ブランチ]` での明示起動のほか、「動作確認の準備をして」「動作確認用のデータと手順を作って」「動作確認して手順書にまとめて」と依頼されたときに使う。
+argument-hint: "[--short] [比較対象ブランチ（省略時は release-candidate、無ければ main）]"
 allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git status:*), Bash(bin/rails routes:*), Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(ruby -c:*), Bash(mkdir:*), Bash(mv:*), Bash(ls:*), Bash(date:*), mcp__plugin_ohirome_playwright
 ---
 
@@ -12,9 +12,10 @@ allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*),
 ```
 docs/verification/<YYYYMMDD>_<機能名>/
 ├─ seed.rb          # 動作確認用データ（bin/rails runner で投入する）
-├─ steps.md         # 1 ステップ 1 操作の手順書。各ステップに URL・操作・結果と画面の画像
+├─ steps.md         # 1 ステップ 1 操作（--short では 1 ステップ 1 画面）の手順書。各ステップに URL・操作・結果と画面の画像
 └─ screenshots/
    ├─ 01.png
+   ├─ 02-before.png # --short でクリックする直前の画面（押す要素に赤枠）
    └─ ...
 ```
 
@@ -24,7 +25,7 @@ docs/verification/<YYYYMMDD>_<機能名>/
 
 ### 1. 変更を把握する
 
-比較対象ブランチは `$ARGUMENTS`。未指定なら `release-candidate`、それが無ければ `main` を使う（`git show-ref --verify refs/heads/<name>` / `refs/remotes/origin/<name>` で存在を確かめる）。
+引数は `$ARGUMENTS`。`--short` が含まれていれば**短縮モード**で steps.md を書く（手順 5）。`--short` を除いた残りが比較対象ブランチで、未指定なら `release-candidate`、それが無ければ `main` を使う（`git show-ref --verify refs/heads/<name>` / `refs/remotes/origin/<name>` で存在を確かめる）。
 
 ```bash
 git diff <base>...HEAD --stat
@@ -81,13 +82,15 @@ git status --short   # 未コミットの変更も対象に含める
 
 ### 5. steps.md の下書きを作る
 
-`references/steps-template.md` の書式（「## 正常系」「## 異常系」の見出し、各ステップの見出し・`📍`・`操作:`・`結果:`・画像の並び）に**そのまま**従う。中身は架空の例なので、対象機能の内容で書く。この時点では各ステップの `📍`（開く予定のパス）と `操作` だけを書き、`結果` と画像は手順 9 で埋める。
+`references/steps-template.md`（短縮モードでは `references/steps-template-short.md`）の書式（「## 正常系」「## 異常系」の見出し、各ステップの見出し・`📍`・`操作:`・`結果:`・画像の並び）に**そのまま**従う。中身は架空の例なので、対象機能の内容で書く。この時点では各ステップの `📍`（開く予定のパス）と `操作` だけを書き、`結果` と画像は手順 9 で埋める。
 
 | ルール |
 |---|
 | 冒頭は「確認する機能」（1〜3 行）だけ。ログイン情報や準備の手順は書かない（seed.rb の出力にある） |
 | 手順 1 で決めたとおり、ログインまわりを変更していなければ、ログインは手順に書かない。手順 1 は機能の画面を URL で開くところから始める |
-| **1 ステップ 1 操作**。入力欄 1 つ、クリック 1 回、選択 1 回がそれぞれ 1 ステップ |
+| **1 ステップ 1 操作**。入力欄 1 つ、クリック 1 回、選択 1 回がそれぞれ 1 ステップ（短縮モードでは次の行に置き換える） |
+| 短縮モード: **1 ステップ 1 画面**。ステップは結果が目に見える操作（クリック・URL を開く）1 つで終わり、その前に同じ画面で続けて行う入力・選択があれば同じステップに含める。入力・選択だけのステップは作らない。クリックで出る確認ダイアログへの応答（「OK」など）は、そのクリックと同じステップに含める。操作が複数あるときは `- 操作:` の下にサブ箇条書きで 1 行 1 操作を並べる |
+| 短縮モード: 「## 異常系」は、正常系の途中の画面を URL（パスとクエリ）で開けるなら、その URL を開くところから始め、正常系と同じ操作をなぞり直さない。その URL は seed.rb の `puts` に、再現した状態がわかるラベルを付けて出す。URL から始めたステップには `📍` と `操作` の間に `- 省略:` 行を置き、その URL が代わりに再現した正常系の手順番号と、そこで選んだ・入力した値を書く（例: `- 省略: 正常系の 1〜4（部屋タイプ「和室 10畳」、チェックイン「20」、チェックアウト「22」を選ぶ）`）。正常系で保存した変更は上のステップにあるので書かない。POST の結果やセッションにしか無い状態など、URL で開けないときは正常系と同じ操作から始め、`省略:` 行は書かない |
 | **全ステップに `📍` 行で URL のパスを書く**。ID を含むパスは `:id` のまま書き、どのレコードかを `（seed 出力の「注文 #1024」）` のように添える |
 | 手順を「## 正常系」と「## 異常系」の見出しで分ける。正常系は機能がうまく動く流れ、異常系はバリデーション・権限・状態による出し分けなど実装したエラーの流れ。番号は両方をまたいで通しで振る。異常系が無ければ「## 異常系」ごと書かない |
 | ラベルや文言は画面の実際の表記を「」で囲んで書く |
@@ -96,7 +99,7 @@ git status --short   # 未コミットの変更も対象に含める
 
 - [ ] `ruby -c docs/verification/<dir>/seed.rb` が `Syntax OK`
 - [ ] steps.md の `📍` のパスがすべて `bin/rails routes` に存在する
-- [ ] 1 ステップに操作が 2 つ以上入っていない（「〜して〜する」になっていない）
+- [ ] 1 ステップに操作が 2 つ以上入っていない（「〜して〜する」になっていない）。短縮モードでは、結果が目に見える操作が 1 ステップに 2 つ以上入っておらず、入力・選択だけのステップも無い
 - [ ] steps.md に出てくる名前・数値が seed.rb と一致している
 - [ ] seed.rb の `puts` にログイン情報（ログイン画面の URL、メールアドレス、パスワード）がある（ログインが必要な画面のとき）
 - [ ] ログインまわりを変更していないのに、ログインが手順に入っていない
@@ -120,9 +123,13 @@ steps.md の手順にログインが無く、ログインが必要な画面の�
 
 steps.md のステップを上から順に、次の 3 つを繰り返す。
 
-1. **操作する**: `browser_snapshot` で要素を特定し、`browser_navigate` / `browser_click` / `browser_type` / `browser_select_option` などで steps.md に書いた操作を 1 つだけ行う。画面遷移を伴う操作は、遷移が終わるまで待ってから次へ進む
+1. **操作する**: `browser_snapshot` で要素を特定し、`browser_navigate` / `browser_click` / `browser_type` / `browser_select_option` などで steps.md に書いた操作を 1 つだけ行う（短縮モードではサブ箇条書きを上から順にすべて）。画面遷移を伴う操作は、遷移が終わるまで待ってから次へ進む
+   - 短縮モードで、ステップの最後の操作がクリックのとき: クリックの直前で止め、クリックする要素に赤枠を付けて `browser_take_screenshot` を `filename: "docs/verification/<dir>/screenshots/NN-before.png"`、`fullPage: true` で呼び、枠を外してからクリックする。最後の操作が確認ダイアログへの応答のときは、ダイアログを開くクリックの直前で同じように撮る（ダイアログが出ている間は撮影できない）。ダイアログには `browser_handle_dialog` で応える
 2. **撮影する**: `browser_take_screenshot` を `filename: "docs/verification/<dir>/screenshots/NN.png"`（NN はステップ番号を 2 桁にしたもの、案件のルートからの相対パス）、`fullPage: true` で呼ぶ。保存できなかった場合は filename を付けずに撮り、返ってきたパスから `mv` で移す
+   - 短縮モードでは、最後のステップと、次のステップが URL を開く操作のときだけ撮る。それ以外は次のステップがこの画面から始まり、その `NN-before.png` に同じ画面が写るため
 3. **結果を控える**: 操作のあとに開いていた URL のパス（ID は `:id` に読み替える）と、`browser_snapshot` で画面に出ていたこと（表示されたメッセージ、値、件数、エラー文）を控える。期待どおりかどうかは判断しない。見えたことをそのまま書く
+
+赤枠は `browser_evaluate` で対象の要素に `(el) => { el.style.outline = '3px solid #e53935'; el.style.outlineOffset = '2px'; }` を当てて付け、`(el) => { el.style.outline = ''; el.style.outlineOffset = ''; }` で外す（`browser_highlight` はセレクタの吹き出しまで写るので使わない）。
 
 ログインできない、画面が開けないなど、それ以上進めないときはそこで止める。それまでのステップだけを steps.md に残し、止まった理由を報告する。
 
@@ -134,6 +141,7 @@ steps.md のステップを上から順に、次の 3 つを繰り返す。
   - `📍` を、手順 8 で控えた実際のパスに書き直す（予定と同じならそのまま）
   - `- 結果: <画面に出たこと>` を書く。入力だけのステップは「数量欄が「3」になった」のように短く書く
   - 箇条書きの後に空行を挟んで `![<番号>. <見出し>](screenshots/NN.png)`
+  - 短縮モード: `NN-before.png` を撮ったステップは、その前に `![<番号>. <見出し>（操作前）](screenshots/NN-before.png)` と空行を置く。`NN.png` を撮らなかったステップは、その行を書かない
 - 手順 7 で**自分で起動したサーバーだけ**止める（起動に使ったバックグラウンドのタスクを止める）。もともと動いていたサーバーには触らない
 - 案件のルートに `.playwright-mcp/` ができていたら削除してよいか確認する（コミットに混ぜないため）
 
