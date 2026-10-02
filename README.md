@@ -82,7 +82,7 @@ steps.md の手順は「正常系」と「異常系」の見出しで分かれ�
 
 ```markdown
 ### 4. 変更を保存する
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)
 - 操作: 「更新する」ボタンをクリック
 - 結果: 「注文を更新しました」と表示され、数量が 3 になった
 
