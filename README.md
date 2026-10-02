@@ -77,7 +77,7 @@ steps.md を確認して問題がなければ、そのディレクトリを渡�
 - [seed.rb の雛形](skills/ohirome/references/seed-template.rb)
 - [steps.md の雛形](skills/ohirome/references/steps-template.md)
 
-steps.md の 1 ステップはこの形です。どのステップにも、開いていた URL のパス（`📍`）、操作、結果（操作したあと画面に出たこと）、画像が付きます。
+steps.md の手順は「正常系」と「異常系」の見出しで分かれています。1 ステップはこの形です。どのステップにも、開いていた URL のパス（`📍`）、操作、結果（操作したあと画面に出たこと）、画像が付きます。
 
 ```markdown
 ### 4. 変更を保存する

@@ -48,7 +48,7 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 ### 4. 収録する
 
 1. **オープニング**: `browser_video_chapter` で `title` に steps.md の見出しの機能名、`description` に「確認する機能」の文、`duration: 3000`
-2. **各ステップ**（steps.md の手順 1 から順に全部）:
+2. **各ステップ**（steps.md の手順 1 から順に全部）。「## 正常系」「## 異常系」の見出しに入るところでは、最初に `browser_video_chapter` で `title: "正常系"`（または `"異常系"`）、`duration: 1500` を出す:
    1. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
    2. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
    3. `browser_wait_for` で `time: 1` 待ち、結果を見せる
