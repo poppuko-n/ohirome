@@ -103,7 +103,7 @@ steps.md は機能ごとに見出しが分かれ、冒頭の目次でどの機�
 
 ```markdown
 #### 4. 変更を保存する
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)
 - **操作:** 「更新する」ボタンをクリック
 - **結果:** 「注文を更新しました」と表示され、数量が 3 になった
 

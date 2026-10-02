@@ -21,21 +21,21 @@
 ![1. 注文一覧を開く](screenshots/01.png)
 
 #### 2. 注文の編集画面を開く
-- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)（seed 出力の「注文 #1024」）
+- 📍 [/admin/orders/37/edit](http://localhost:3000/admin/orders/37/edit)（seed 出力の「注文 #1024」）
 - **操作:** #1024 の行の「編集」をクリック
 - **結果:** 編集画面が開き、数量欄に「2」が入っていた
 
 ![2. 注文の編集画面を開く](screenshots/02.png)
 
 #### 3. 数量を変更する
-- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
+- 📍 [/admin/orders/37/edit](http://localhost:3000/admin/orders/37/edit)
 - **操作:** 数量欄を「3」に書き換える
 - **結果:** 数量欄が「3」になった
 
 ![3. 数量を変更する](screenshots/03.png)
 
 #### 4. 変更を保存する
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)
 - **操作:** 「更新する」ボタンをクリック
 - **結果:** 「注文を更新しました」と表示され、数量が 3、合計が ¥5,940 になった
 
@@ -44,21 +44,21 @@
 ### 異常系
 
 #### 5. もう一度編集画面を開く
-- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
+- 📍 [/admin/orders/37/edit](http://localhost:3000/admin/orders/37/edit)
 - **操作:** 「編集」ボタンをクリック
 - **結果:** 編集画面が開き、数量欄に「3」が入っていた
 
 ![5. もう一度編集画面を開く](screenshots/05.png)
 
 #### 6. 数量に 0 を入れる
-- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
+- 📍 [/admin/orders/37/edit](http://localhost:3000/admin/orders/37/edit)
 - **操作:** 数量欄を「0」に書き換える
 - **結果:** 数量欄が「0」になった
 
 ![6. 数量に 0 を入れる](screenshots/06.png)
 
 #### 7. 保存できないことを確かめる
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)
 - **操作:** 「更新する」ボタンをクリック
 - **結果:** 「数量は1以上の値にしてください」と表示され、保存されなかった（数量は 3 のまま）
 
@@ -73,14 +73,14 @@
 ### 正常系
 
 #### 8. 注文詳細を開く
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)（seed 出力の「注文 #1024」）
-- **操作:** `/admin/orders/:id` を開く
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)（seed 出力の「注文 #1024」）
+- **操作:** `/admin/orders/37` を開く
 - **結果:** 注文詳細が表示され、状態が「未出荷」、右上に「出荷する」ボタンがあった
 
 ![8. 注文詳細を開く](screenshots/08.png)
 
 #### 9. 出荷済みにする
-- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
+- 📍 [/admin/orders/37](http://localhost:3000/admin/orders/37)
 - **操作:** 「出荷する」ボタンをクリック
 - **結果:** 「出荷済みにしました」と表示され、状態が「出荷済み」になり、「出荷する」ボタンが消えた
 
@@ -96,7 +96,7 @@
 `/ohirome:video` で動画を作ると、各ステップの「結果」の次に、動画のどこにあたるかの時刻が足される（/ohirome では書かない）:
 - 🎬 0:42
 
-📍 の表示はパス（ID は :id）、リンク先は実行した人の環境の実際の URL（ベース URL は localhost のポートや puma-dev の https://<名前>.test など）。
+📍 の表示は実際のパス（ID も実際の値）、リンク先は実行した人の環境の実際の URL（ベース URL は localhost のポートや puma-dev の https://<名前>.test など）。
 
 番号は機能と「正常系」「異常系」をまたいで、最初から最後まで通しで振る。異常系が無い機能では「### 異常系」ごと書かない。
 
