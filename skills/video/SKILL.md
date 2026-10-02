@@ -2,7 +2,7 @@
 name: video
 description: ohirome で作り、人が確認した手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。
 argument-hint: "<docs/verification/<YYYYMMDD>_<機能名>>"
-allowed-tools: Read, Glob, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
+allowed-tools: Read, Glob, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(git rev-parse:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
 ---
 
 # ohirome:video: 確認済みの手順書からデモ動画を作る
@@ -30,18 +30,15 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 ### 2. seed を投入し、サーバーを用意する
 
 1. `bin/rails runner <dir>/seed.rb` を実行する。前回の操作で変わったデータが、手順を始める前の状態に戻る。出力されたログイン情報を控える
-2. ポートを決める。`Procfile.dev` の web 行に `-p <番号>` や `PORT` があればそれ、無ければ 3000
-3. `curl -s -o /dev/null -w '%{http_code}' http://localhost:<port>/` で応答を確かめる
-   - **応答あり**: そのサーバーを使う。録画後も止めない
-   - **応答なし**: `bin/dev`（無ければ `bin/rails server -p <port>`）を Bash の `run_in_background` で起動し、`curl -s -o /dev/null -w '%{http_code}' --retry 30 --retry-connrefused --retry-delay 2 http://localhost:<port>/` で応答を待つ。**自分で起動したことを覚えておく**
-4. `mkdir -p tmp/ohirome/<dir名>` で動画の置き場を作る（`<dir名>` は `20261002_order_quantity_edit` の部分）。`git check-ignore -q tmp/ohirome/<dir名>` が失敗する（git 管理外になっていない）ときは、動画がコミットされうることを報告で伝える
+2. このスキルのディレクトリから見た `../ohirome/references/server.md` の手順 1〜3 で**ベース URL** を決め、サーバーを用意する。worktree ごとのポートや puma-dev（`https://<名前>.test`）もここで扱う
+3. `mkdir -p tmp/ohirome/<dir名>` で動画の置き場を作る（`<dir名>` は `20261002_order_quantity_edit` の部分）。`git check-ignore -q tmp/ohirome/<dir名>` が失敗する（git 管理外になっていない）ときは、動画がコミットされうることを報告で伝える
 
 ### 3. 録画を始める
 
 同梱の Playwright MCP（`mcp__plugin_ohirome_playwright__*`）を使う。
 
-1. 手順にログインが無く、seed の出力にログイン情報があるときは、そのログイン画面を開いてログインする。`browser_start_video` より前の操作は動画に映らないので、ログインは動画に入らない。ログインできなければ録画せずに止め、理由を伝える
-2. `browser_navigate` で手順 1 の 📍 のページを開く（録画はページが開いていないと始められない）。開いたページのパスが 📍 と違う（ID は `:id` に読み替えて比べる。ログイン画面へリダイレクトされたなど）ときは、録画せずに止め、実際に開いたパスを伝える
+1. ページはすべて「ベース URL + パス」で開く。手順にログインが無く、seed の出力にログイン情報があるときは、そのログイン画面を開いてログインする。`browser_start_video` より前の操作は動画に映らないので、ログインは動画に入らない。ログインできなければ録画せずに止め、理由を伝える
+2. `browser_navigate` で手順 1 の 📍 のページを開く。📍 のリンク先が今のベース URL で始まっていればそれを、違えばベース URL + 📍 のパス（`:id` は seed の出力の URL から補う）を開く（録画はページが開いていないと始められない）。開いたページのパスが 📍 と違う（ID は `:id` に読み替えて比べる。ログイン画面へリダイレクトされたなど）ときは、録画せずに止め、実際に開いたパスを伝える
 3. `browser_start_video`: `filename: "tmp/ohirome/<dir名>/demo.webm"`、`size: { width: 1280, height: 800 }`
 4. `browser_video_show_actions`: `cursor: "pointer"`、`duration: 800`（マウスポインタの動きと、操作した場所の強調が映る）
 

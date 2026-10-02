@@ -6,28 +6,28 @@
 ## 正常系
 
 ### 1. 注文一覧を開く
-- 📍 `/admin/orders`
-- 操作: ブラウザで `http://localhost:3000/admin/orders` を開く
+- 📍 [/admin/orders](http://localhost:3000/admin/orders)
+- 操作: `/admin/orders` を開く
 - 結果: 注文一覧が表示され、山田 花子 様の注文 #1024 が一覧にあった
 
 ![1. 注文一覧を開く](screenshots/01.png)
 
 ### 2. 注文の編集画面を開く
-- 📍 `/admin/orders/:id/edit`（seed 出力の「注文 #1024」）
+- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)（seed 出力の「注文 #1024」）
 - 操作: #1024 の行の「編集」をクリック
 - 結果: 編集画面が開き、数量欄に「2」が入っていた
 
 ![2. 注文の編集画面を開く](screenshots/02.png)
 
 ### 3. 数量を変更する
-- 📍 `/admin/orders/:id/edit`
+- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
 - 操作: 数量欄を「3」に書き換える
 - 結果: 数量欄が「3」になった
 
 ![3. 数量を変更する](screenshots/03.png)
 
 ### 4. 変更を保存する
-- 📍 `/admin/orders/:id`
+- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
 - 操作: 「更新する」ボタンをクリック
 - 結果: 「注文を更新しました」と表示され、数量が 3、合計が ¥5,940 になった
 
@@ -36,48 +36,50 @@
 ## 異常系
 
 ### 5. もう一度編集画面を開く
-- 📍 `/admin/orders/:id/edit`
+- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
 - 操作: 「編集」ボタンをクリック
 - 結果: 編集画面が開き、数量欄に「3」が入っていた
 
 ![5. もう一度編集画面を開く](screenshots/05.png)
 
 ### 6. 数量に 0 を入れる
-- 📍 `/admin/orders/:id/edit`
+- 📍 [/admin/orders/:id/edit](http://localhost:3000/admin/orders/37/edit)
 - 操作: 数量欄を「0」に書き換える
 - 結果: 数量欄が「0」になった
 
 ![6. 数量に 0 を入れる](screenshots/06.png)
 
 ### 7. 保存できないことを確かめる
-- 📍 `/admin/orders/:id`
+- 📍 [/admin/orders/:id](http://localhost:3000/admin/orders/37)
 - 操作: 「更新する」ボタンをクリック
 - 結果: 「数量は1以上の値にしてください」と表示され、保存されなかった（数量は 3 のまま）
 
 ![7. 保存できないことを確かめる](screenshots/07.png)
 
 <!--
+📍 の表示はパス（ID は :id）、リンク先は実行した人の環境の実際の URL（ベース URL は localhost のポートや puma-dev の https://<名前>.test など）。
+
 番号は「正常系」「異常系」をまたいで通しで振る。異常系が無い機能では「## 異常系」ごと書かない。
 
 ログインまわりを変更したときは、「## 正常系」の手順 1 からログインを 1 操作ずつ書く（以降の番号はずれる）:
 
 ### 1. ログイン画面を開く
-- 📍 `/admin/sign_in`
-- 操作: ブラウザで `http://localhost:3000/admin/sign_in` を開く
+- 📍 [/admin/sign_in](http://localhost:3000/admin/sign_in)
+- 操作: `/admin/sign_in` を開く
 - 結果: ログインフォームが表示された
 
 ### 2. メールアドレスを入力する
-- 📍 `/admin/sign_in`
+- 📍 [/admin/sign_in](http://localhost:3000/admin/sign_in)
 - 操作: 「メールアドレス」に `sato.kenichi@example.com` を入力
 - 結果: メールアドレス欄に入力された
 
 ### 3. パスワードを入力する
-- 📍 `/admin/sign_in`
+- 📍 [/admin/sign_in](http://localhost:3000/admin/sign_in)
 - 操作: 「パスワード」に `password` を入力
 - 結果: パスワード欄に伏せ字で入力された
 
 ### 4. ログインする
-- 📍 `/admin`
+- 📍 [/admin](http://localhost:3000/admin)
 - 操作: 「ログイン」ボタンをクリック
 - 結果: 管理画面のトップが開き、右上に「佐藤 健一」と表示された
 -->
