@@ -2,7 +2,7 @@
 name: ohirome
 description: Rails 案件で機能の実装が終わったあと、動作確認用の seed.rb と、各ステップに URL・操作・結果と実際の画面のスクリーンショットを並べた手順書 steps.md を生成する。スキルが seed を開発 DB に投入し、開発サーバーをブラウザで操作して撮影する。`/ohirome [比較対象ブランチ]` での明示起動のほか、「動作確認の準備をして」「動作確認用のデータと手順を作って」「動作確認して手順書にまとめて」と依頼されたときに使う。
 argument-hint: "[比較対象ブランチ（省略時は release-candidate、無ければ main）]"
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git status:*), Bash(bin/rails routes:*), Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(ruby -c:*), Bash(mkdir:*), Bash(mv:*), Bash(ls:*), Bash(date:*), mcp__plugin_ohirome_playwright
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git status:*), Bash(bin/rails routes:*), Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(ruby -c:*), Bash(mkdir:*), Bash(mv:*), Bash(ls:*), Bash(date:*), mcp__plugin_ohirome_playwright
 ---
 
 # ohirome: 動作確認の結果を手順書にまとめる
@@ -88,7 +88,7 @@ git status --short   # 未コミットの変更も対象に含める
 | 冒頭は「確認する機能」（1〜3 行）だけ。ログイン情報や準備の手順は書かない（seed.rb の出力にある） |
 | 手順 1 で決めたとおり、ログインまわりを変更していなければ、ログインは手順に書かない。手順 1 は機能の画面を URL で開くところから始める |
 | **1 ステップ 1 操作**。入力欄 1 つ、クリック 1 回、選択 1 回がそれぞれ 1 ステップ |
-| **全ステップに `📍` 行で URL のパスを書く**。ID を含むパスは `:id` のまま書き、どのレコードかを `（seed 出力の「注文 #1024」）` のように添える |
+| **全ステップに `📍` 行で URL のパスを書く**（下書きではただのパス。手順 9 で実際の URL へのリンクにする）。ID を含むパスは `:id` のまま書き、どのレコードかを `（seed 出力の「注文 #1024」）` のように添える |
 | 手順を「## 正常系」と「## 異常系」の見出しで分ける。正常系は機能がうまく動く流れ、異常系はバリデーション・権限・状態による出し分けなど実装したエラーの流れ。番号は両方をまたいで通しで振る。異常系が無ければ「## 異常系」ごと書かない |
 | ラベルや文言は画面の実際の表記を「」で囲んで書く |
 
@@ -105,24 +105,20 @@ git status --short   # 未コミットの変更も対象に含める
 ### 7. seed を投入し、サーバーを用意する
 
 1. `bin/rails runner docs/verification/<dir>/seed.rb` を実行する。失敗したら seed.rb を直して再実行する。出力されたログイン情報と ID 入りの URL を控える
-2. ポートを決める。`Procfile.dev` の web 行に `-p <番号>` や `PORT` があればそれ、無ければ 3000
-3. `curl -s -o /dev/null -w '%{http_code}' http://localhost:<port>/` で応答を確かめる
-   - **応答あり**: そのサーバーを使う。撮影後も止めない
-   - **応答なし**: `bin/dev`（無ければ `bin/rails server -p <port>`）を Bash の `run_in_background` で起動し、`curl -s -o /dev/null -w '%{http_code}' --retry 30 --retry-connrefused --retry-delay 2 http://localhost:<port>/` で応答を待つ。**自分で起動したことを覚えておく**
-   - 起動しても応答しない場合は、サーバーのログを見て原因を伝えて止める
-4. `mkdir -p docs/verification/<dir>/screenshots` で画像の置き場を作る
+2. `references/server.md` の手順 1〜3 で**ベース URL** を決め、サーバーを用意する。worktree ごとのポートや puma-dev（`https://<名前>.test`）もここで扱う
+3. `mkdir -p docs/verification/<dir>/screenshots` で画像の置き場を作る
 
 ### 8. ブラウザで 1 ステップずつ実行する
 
 同梱の Playwright MCP（`mcp__plugin_ohirome_playwright__*`）を使う。ブラウザは毎回まっさらな状態（前回のログインは残っていない）で、画面サイズは 1280×800。
 
-steps.md の手順にログインが無く、ログインが必要な画面のときは、手順 1 の前に seed の出力のログイン情報でログインする。このログインは撮影しない。
+ページはすべて「ベース URL + パス」で開く。steps.md の手順にログインが無く、ログインが必要な画面のときは、手順 1 の前に seed の出力のログイン情報（ログイン画面のパス、メールアドレス、パスワード）でログインする。このログインは撮影しない。
 
 steps.md のステップを上から順に、次の 3 つを繰り返す。
 
 1. **操作する**: `browser_snapshot` で要素を特定し、`browser_navigate` / `browser_click` / `browser_type` / `browser_select_option` などで steps.md に書いた操作を 1 つだけ行う。画面遷移を伴う操作は、遷移が終わるまで待ってから次へ進む
 2. **撮影する**: `browser_take_screenshot` を `filename: "docs/verification/<dir>/screenshots/NN.png"`（NN はステップ番号を 2 桁にしたもの、案件のルートからの相対パス）、`fullPage: true` で呼ぶ。保存できなかった場合は filename を付けずに撮り、返ってきたパスから `mv` で移す
-3. **結果を控える**: 操作のあとに開いていた URL のパス（ID は `:id` に読み替える）と、`browser_snapshot` で画面に出ていたこと（表示されたメッセージ、値、件数、エラー文）を控える。期待どおりかどうかは判断しない。見えたことをそのまま書く
+3. **結果を控える**: 操作のあとに開いていた**完全な URL**（ベース URL と ID を含む）と、`browser_snapshot` で画面に出ていたこと（表示されたメッセージ、値、件数、エラー文）を控える。期待どおりかどうかは判断しない。見えたことをそのまま書く
 
 ログインできない、画面が開けないなど、それ以上進めないときはそこで止める。それまでのステップだけを steps.md に残し、止まった理由を報告する。
 
@@ -131,10 +127,10 @@ steps.md のステップを上から順に、次の 3 つを繰り返す。
 ### 9. steps.md を仕上げ、後片付けする
 
 - 各ステップを仕上げる
-  - `📍` を、手順 8 で控えた実際のパスに書き直す（予定と同じならそのまま）
+  - `📍` を `[<パス（ID は :id に読み替える）>](<手順 8 で控えた完全な URL>)` のリンクに書き直す。押すと実際の画面が開く
   - `- 結果: <画面に出たこと>` を書く。入力だけのステップは「数量欄が「3」になった」のように短く書く
   - 箇条書きの後に空行を挟んで `![<番号>. <見出し>](screenshots/NN.png)`
-- 手順 7 で**自分で起動したサーバーだけ**止める（起動に使ったバックグラウンドのタスクを止める）。もともと動いていたサーバーには触らない
+- `references/server.md` の手順 4 のとおり、**自分で起動したサーバーだけ**止める
 - 案件のルートに `.playwright-mcp/` ができていたら削除してよいか確認する（コミットに混ぜないため）
 
 ### 10. 報告する
@@ -142,5 +138,6 @@ steps.md のステップを上から順に、次の 3 つを繰り返す。
 次だけを短く伝える。
 
 - 生成したファイルのパス
+- 使ったベース URL（📍 のリンク先はこの URL。別の人の環境ではポートや ID が違い、開けないことがある）
 - 途中で止まった場合は、どのステップで、なぜ止まったか
 - steps.md を読んで問題がなければ `/ohirome:video docs/verification/<dir>` で動画を作れること

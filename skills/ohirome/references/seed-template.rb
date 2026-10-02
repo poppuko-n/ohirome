@@ -27,11 +27,11 @@ order.update!(quantity: 2)
 
 puts <<~TEXT
   ■ ログイン情報
-    ログイン画面: http://localhost:3000/admin/sign_in
+    ログイン画面: /admin/sign_in
     メール:       #{admin.email}
     パスワード:   password
     表示名:       #{admin.name}
 
-  ■ 確認で使う URL
-    注文 #1024: http://localhost:3000/admin/orders/#{order.id}/edit
+  ■ 確認で使う URL（パス。ベース URL は環境によって違う）
+    注文 #1024: /admin/orders/#{order.id}/edit
 TEXT
