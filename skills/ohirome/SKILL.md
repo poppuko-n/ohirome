@@ -2,7 +2,7 @@
 name: ohirome
 description: Rails 案件で機能の実装が終わったあと、動作確認用の seed.rb と、各ステップに実際の画面のスクリーンショットと判定（✅/❌）を埋め込んだ手順書 steps.md を生成する。スキルが seed を開発 DB に投入し、開発サーバーをブラウザで操作して撮影する。`/ohirome [比較対象ブランチ]` での明示起動のほか、「動作確認の準備をして」「動作確認用のデータと手順を作って」「動作確認して手順書にまとめて」と依頼されたときに使う。
 argument-hint: "[比較対象ブランチ（省略時は release-candidate、無ければ main）]"
-allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git status:*), Bash(bin/rails routes:*), Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(ruby -c:*), Bash(mkdir:*), Bash(mv:*), Bash(ls:*), Bash(date:*), mcp__plugin_ohirome_playwright
+allowed-tools: Read, Grep, Glob, Write, Edit, Bash(git diff:*), Bash(git log:*), Bash(git branch:*), Bash(git rev-parse:*), Bash(git show-ref:*), Bash(git status:*), Bash(bin/rails routes:*), Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(ruby -c:*), Bash(mkdir:*), Bash(mv:*), Bash(ls:*), Bash(date:*), Bash(crit:*), Bash(which crit:*), mcp__plugin_ohirome_playwright
 ---
 
 # ohirome: 動作確認の結果を手順書にまとめる
@@ -153,3 +153,10 @@ steps.md のステップを上から順に、次の 3 つを繰り返す。
 - 生成したファイルのパス
 - 結果（確認の何か所中いくつ期待どおりか）。❌ があれば、そのステップと実際に見えたものを一覧で
 - 実際に触りたいとき: `bin/rails runner docs/verification/<dir>/seed.rb` を流して steps.md のとおりに操作する
+
+### 11. レビューを受ける
+
+続けて steps.md を crit でブラウザに開き、人のコメントを反映する。
+
+- `which crit` が成功したら、このスキルのディレクトリから見て `../review/SKILL.md` を読み、その手順 2 から、対象ディレクトリを `docs/verification/<dir>` として進める
+- 失敗したら、「`brew install crit` で crit を入れると、`/ohirome:review docs/verification/<dir>` で画像を見ながら steps.md にコメントでき、Claude が反映する」と伝えて終わる
