@@ -13,7 +13,7 @@ docs/verification/<YYYYMMDD>_<機能名>/
 
 正常系もエラー系も、steps.md を読むだけでどう動いたかが分かります。期待どおりかどうかは、読んだ人が判断します。実際に触ってみたくなったら、seed を流して steps.md のとおりに操作してください。
 
-確認して問題がなければ、`/ohirome:video` で同じ手順を録画し、お客さんに渡せるデモ動画を作れます。
+手順書ができると、続けて steps.md がブラウザ（[crit](https://crit.md)）で開きます。画像を見ながら直したいところにコメントすると、Claude が反映します。確認して問題がなければ、`/ohirome:video` で同じ手順を録画し、お客さんに渡せるデモ動画を作れます。
 
 絵で見る概要: [ohirome のしくみ](https://claude.ai/artifact/4j7Di3BjmNjyeUCWeGUuSm?sk=GlGAeEmnZ3BmZBIP55i_OA)
 
@@ -37,6 +37,12 @@ pnpm dlx playwright install ffmpeg   # 録画に必須
 brew install ffmpeg                  # mp4 にしたい場合だけ
 ```
 
+手順書にコメントして直してもらうには、[crit](https://crit.md) を入れます。入っていなければ、コメントのステップは飛ばされます。
+
+```bash
+brew install crit
+```
+
 ## 使い方
 
 機能の実装が終わったブランチで実行します。
@@ -58,6 +64,20 @@ brew install ffmpeg                  # mp4 にしたい場合だけ
 
 ```bash
 bin/rails runner docs/verification/<YYYYMMDD>_<機能名>/seed.rb
+```
+
+### 手順書にコメントして直してもらう
+
+`/ohirome` の最後に、そのまま次の流れになります。
+
+- crit がブラウザで steps.md を画像つきで開くので、気になる行にコメントして「Finish Review」を押します
+- 言い回しの修正は steps.md だけを直します。手順・確認する中身・seed の値が変わるコメントがあれば、seed を入れ直して全ステップを撮り直します
+- 直したら次のラウンドが開くので、差分を見てまたコメントします。コメントなしで「Finish Review」を押すと終わります
+
+前に作った手順書に、あとからコメントしたいときは、そのディレクトリを渡して実行します。
+
+```
+/ohirome:review docs/verification/<YYYYMMDD>_<機能名>
 ```
 
 ### お客さん向けの動画を作る
