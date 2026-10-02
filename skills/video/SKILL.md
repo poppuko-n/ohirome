@@ -43,9 +43,10 @@ tmp/ohirome/<dir名>/
 
 同梱の Playwright MCP（`mcp__plugin_ohirome_playwright__*`）を使う。
 
-1. `browser_navigate` で手順 1 の 📍 のページを開く（録画はページが開いていないと始められない）
-2. `browser_start_video`: `filename: "tmp/ohirome/<dir名>/demo.webm"`、`size: { width: 1280, height: 800 }`
-3. `browser_video_show_actions`: `cursor: "pointer"`、`duration: 800`（マウスポインタの動きと、操作した場所の強調が映る）
+1. 手順にログインが無く、「準備」に `ログイン:` の行があるときは、そのログイン画面を開いてログインする。`browser_start_video` より前の操作は動画に映らないので、ログインは動画に入らない。ログインできなければ録画せずに止め、理由を伝える
+2. `browser_navigate` で手順 1 の 📍 のページを開く（録画はページが開いていないと始められない）。開いたページのパスが 📍 と違う（ID は `:id` に読み替えて比べる。ログイン画面へリダイレクトされたなど）ときは、録画せずに止め、実際に開いたパスを伝える
+3. `browser_start_video`: `filename: "tmp/ohirome/<dir名>/demo.webm"`、`size: { width: 1280, height: 800 }`
+4. `browser_video_show_actions`: `cursor: "pointer"`、`duration: 800`（マウスポインタの動きと、操作した場所の強調が映る）
 
 ### 4. 収録する
 
