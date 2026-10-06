@@ -1,8 +1,8 @@
 ---
 name: video
-description: ohirome で作り、人が確認した手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。
+description: ohirome で作り、人が確認した手順書（docs/verification/<dir>/steps.md）をそのまま台本にして、開発サーバーをブラウザで操作しながら録画し、お客さんに渡せるデモ動画（機能ごとのチャプター付きの mp4、ffmpeg が無ければ webm）を作る。`/ohirome:video <docs/verification/<dir>>` での明示起動のほか、「この手順書から動画を作って」「お客さん向けのデモ動画を作って」と依頼されたときに使う。
 argument-hint: "<docs/verification/<YYYYMMDD>_<機能名>>"
-allowed-tools: Read, Glob, Edit, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(git rev-parse:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
+allowed-tools: Read, Glob, Write, Edit, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash(bin/rails server:*), Bash(curl:*), Bash(readlink:*), Bash(git rev-parse:*), Bash(mkdir:*), Bash(ls:*), Bash(git check-ignore:*), Bash(which ffmpeg:*), Bash(ffmpeg:*), mcp__plugin_ohirome_playwright
 ---
 
 # ohirome:video: 確認済みの手順書からデモ動画を作る
@@ -11,8 +11,9 @@ allowed-tools: Read, Glob, Edit, Bash(bin/rails runner:*), Bash(bin/dev:*), Bash
 
 ```
 tmp/ohirome/<dir名>/
-├─ demo.webm   # 録画そのもの
-└─ demo.mp4    # 渡す用（ffmpeg があるときだけ）
+├─ demo.webm      # 録画そのもの
+├─ chapters.txt   # チャプターの時刻とタイトル（ffmpeg のメタデータ形式）
+└─ demo.mp4       # 渡す用。チャプター付き（ffmpeg があるときだけ）
 ```
 
 `tmp/` は git 管理外なので、動画はコミットされない。
@@ -46,7 +47,7 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 ### 4. 収録する
 
 1. **オープニング**: `browser_video_chapter` で `title` に steps.md の `#` 見出しの名前（「動作確認手順」は除く）、`description` に目次の表の機能名を「、」でつないだもの、`duration: 3000`
-2. **各ステップ**（steps.md の手順 1 から順に全部）。見出しに入るところでは、最初に次のチャプターを出す:
+2. **各ステップ**（steps.md の手順 1 から順に全部）。見出しに入るところでは、最初に次のチャプターを出す。`## <記号>. <機能名>` と「### 異常系」の見出しでは、カードを出す直前に `browser_evaluate` で `() => Date.now()` を実行し、`返ってきた値 - 録画の開始時刻`（ミリ秒）を手順 6 の**チャプターの開始位置**として控える:
    - `## <記号>. <機能名>` の見出し: `browser_video_chapter` で `title: "<記号>. <機能名>"`、`description` にその下の `>` の文、`duration: 2500`
    - 「### 正常系」「### 異常系」の見出し: `browser_video_chapter` で `title: "正常系"`（または `"異常系"`）、`duration: 1500`
 
@@ -55,18 +56,46 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
    2. `browser_video_chapter` で `title: "<番号>. <見出し>"`、`duration: 1200`
    3. steps.md の「操作」を 1 つ行う。要素は `browser_snapshot` で特定する。入力は `browser_type` に `slowly: true` を付けて 1 文字ずつ打つ。手順 1 のように「開く」操作は、開いているページでも `browser_navigate` でもう一度開く
    4. `browser_wait_for` で `time: 1` 待ち、結果を見せる
-3. **エンディング**: `browser_video_chapter` で `title: "以上です"`、`duration: 2000`
+3. **エンディング**: `browser_video_chapter` で `title: "以上です"`、`duration: 2000`。出し終えたら `browser_evaluate` で `() => Date.now()` を実行し、`返ってきた値 - 録画の開始時刻`（ミリ秒）を**録画の終了位置**として控える
 
 ### 5. 録画を止める
 
 `browser_stop_video` で保存し、`browser_close` でブラウザを閉じる。返ってきたパスが `tmp/ohirome/<dir名>/demo.webm` であることを確かめる。
 
-### 6. mp4 に変換する
+### 6. チャプターを付けて mp4 に変換する
+
+手順 4 で控えた位置から、チャプターを機能ごとに作る。機能に異常系があるときは、正常系と異常系を別のチャプターにする。
+
+| チャプター | 開始位置 | タイトル |
+|---|---|---|
+| オープニング | 0 | `オープニング` |
+| 機能（異常系が無い） | その機能のカードの直前 | `<記号>. <機能名>` |
+| 機能の正常系（異常系がある） | その機能のカードの直前 | `<記号>. <機能名>（正常系）` |
+| 機能の異常系 | 「異常系」のカードの直前 | `<記号>. <機能名>（異常系）` |
+
+各チャプターの終了位置は次のチャプターの開始位置、最後のチャプターの終了位置は録画の終了位置にする（エンディングは最後のチャプターに含める）。
+
+`Write` で `tmp/ohirome/<dir名>/chapters.txt` を次の形で書く（UTF-8）。タイトルに `=`、`;`、`#`、`\` があれば、前に `\` を付ける。
+
+```
+;FFMETADATA1
+[CHAPTER]
+TIMEBASE=1/1000
+START=0
+END=3120
+title=オープニング
+[CHAPTER]
+TIMEBASE=1/1000
+START=3120
+END=41870
+title=A. 注文の数量を変更できる（正常系）
+...
+```
 
 `which ffmpeg` で ffmpeg があるかを確かめる。
 
-- **ある**: `ffmpeg -y -loglevel error -i tmp/ohirome/<dir名>/demo.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart tmp/ohirome/<dir名>/demo.mp4`
-- **無い**: webm のまま残す。報告で「mp4 が必要なら `brew install ffmpeg` のあと `/ohirome:video` をもう一度」と伝える
+- **ある**: `ffmpeg -y -loglevel error -i tmp/ohirome/<dir名>/demo.webm -i tmp/ohirome/<dir名>/chapters.txt -map 0 -map_metadata 1 -map_chapters 1 -c:v libx264 -pix_fmt yuv420p -movflags +faststart tmp/ohirome/<dir名>/demo.mp4`
+- **無い**: webm のまま残す（チャプターは付かない）。報告で「チャプター付きの mp4 が必要なら `brew install ffmpeg` のあと `/ohirome:video` をもう一度」と伝える
 
 ### 7. steps.md に動画の時刻を書く
 
@@ -86,6 +115,7 @@ steps.md の内容が期待どおりかは、実行する人がすでに確認�
 - 手順 2 で**自分で起動したサーバーだけ**止める（起動に使ったバックグラウンドのタスクを止める）。もともと動いていたサーバーには触らない
 - 次だけを短く伝える
   - 動画のパス（mp4 があれば mp4、無ければ webm）
+  - チャプターの一覧を `0:00 オープニング` の形で（mp4 のチャプターは QuickTime Player や VLC で表示される。Chrome などブラウザの再生画面には出ないので、一覧を添えて渡すと親切なこと）
   - 要素が見つからないなどで操作できなかったステップがあれば、その番号。あれば「お客さんに渡す前に動画を見て確かめてください」と添える
   - 動画はコミットされないこと（`tmp/` に置いている）
   - steps.md の各ステップに `🎬` で動画の時刻を書いたこと。撮り直すと時刻が変わり、steps.md に差分が出ること
